@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOMBE 球队经费管理</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+            color: white;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 16px 32px;
+            border-radius: 50px;
+            margin-bottom: 16px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-bar {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 20px;
+        }
+
+        .stat-icon.blue { background: #dbeafe; }
+        .stat-icon.green { background: #d1fae5; }
+        .stat-icon.red { background: #fee2e2; }
+        .stat-icon.yellow { background: #fef3c7; }
+        .stat-icon.purple { background: #ede9fe; }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .stat-value.positive { color: var(--success); }
+        .stat-value.negative { color: var(--danger); }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .form-row.three-cols {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-600);
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: var(--gray-50);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        input.error {
+            border-color: var(--danger);
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .score-input {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--gray-50);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .score-input input {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            width: 80px;
+        }
+
+        .score-vs {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-400);
+        }
+
+        .score-team {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-600);
+            min-width: 60px;
+        }
+
+        .calculation-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .calc-row:not(:last-child) {
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .calc-label {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .calc-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .calc-value.income { color: var(--success); }
+        .calc-value.expense { color: var(--danger); }
+        .calc-value.balance { 
+            font-size: 18px;
+            color: var(--primary); 
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #fecaca;
+        }
+
+        .btn-success {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #a7f3d0;
+        }
+
+        .records-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .records-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .records-count {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .records-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .record-item {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .record-item:hover {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow);
+        }
+
+        .record-item.win {
+            border-left: 4px solid var(--success);
+        }
+
+        .record-item.lose {
+            border-left: 4px solid var(--danger);
+        }
+
+        .record-item.draw {
+            border-left: 4px solid var(--warning);
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .record-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .record-date {
+            background: var(--gray-100);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-600);
+        }
+
+        .record-opponent {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .record-result {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .record-score {
+            background: var(--gray-800);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .record-status {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .record-status.win {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .record-status.lose {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .record-status.draw {
+            background: #fef3c7;
+            color: var(--warning);
+        }
+
+        .record-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--gray-100);
+        }
+
+        .record-detail {
+            text-align: center;
+        }
+
+        .record-detail-label {
+            font-size: 11px;
+            color: var(--gray-400);
+            margin-bottom: 2px;
+        }
+
+        .record-detail-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .record-detail-value.income { color: var(--success); }
+        .record-detail-value.expense { color: var(--danger); }
+
+        .record-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--gray-400);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .record-delete:hover {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--gray-400);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .initial-balance-section {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 24px;
+        }
+
+        .initial-balance-section .section-title::before {
+            background: var(--warning);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--gray-800);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .footer-actions .btn {
+            flex: 0 0 auto;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+
+        .win-rate-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .win-rate-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #34d399);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">⚽</div>
+                <span class="logo-text">BOMBE</span>
+            </div>
+            <p class="subtitle">球队经费管理系统</p>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-icon blue">📊</div>
+                <div class="stat-label">比赛场次</div>
+                <div class="stat-value" id="totalMatches">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">🏆</div>
+                <div class="stat-label">胜 / 平 / 负</div>
+                <div class="stat-value" id="winDrawLose">0 / 0 / 0</div>
+                <div class="win-rate-bar">
+                    <div class="win-rate-fill" id="winRateBar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">💰</div>
+                <div class="stat-label">累计总收入</div>
+                <div class="stat-value positive" id="totalIncomeSum">¥0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">💸</div>
+                <div class="stat-label">累计总支出</div>
+                <div class="stat-value negative" id="totalExpenseSum">¥0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon yellow">💵</div>
+                <div class="stat-label">经费结余</div>
+                <div class="stat-value" id="totalBalance">¥0</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <span>📝</span> 比赛记录录入
+                    </div>
+                    <div class="card-body">
+                        <div class="form-section">
+                            <div class="section-title">比赛信息</div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="matchDate">比赛日期 *</label>
+                                    <input type="date" id="matchDate">
+                                    <div class="error-message" id="dateError">请选择比赛日期</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="opponent">对战对手 *</label>
+                                    <input type="text" id="opponent" placeholder="输入对手名称">
+                                    <div class="error-message" id="opponentError">请输入对战对手</div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>比分</label>
+                                <div class="score-input">
+                                    <span class="score-team">BOMBE</span>
+                                    <input type="number" id="ourScore" value="0" min="0">
+                                    <span class="score-vs">VS</span>
+                                    <input type="number" id="theirScore" value="0" min="0">
+                                    <span class="score-team" id="opponentScoreLabel">对手</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="section-title">收入项</div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="memberFee">队员缴纳经费</label>
+                                    <input type="number" id="memberFee" value="0" min="0" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="opponentFee">对手支付场地费</label>
+                                    <input type="number" id="opponentFee" value="0" min="0" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="section-title">支出项</div>
+                            <div class="form-row three-cols">
+                                <div class="form-group">
+                                    <label for="waterFee">饮用水</label>
+                                    <input type="number" id="waterFee" value="0" min="0" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="refereeFee">裁判费</label>
+                                    <input type="number" id="refereeFee" value="0" min="0" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="venueFee">场地费</label>
+                                    <input type="number" id="venueFee" value="0" min="0" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="calculation-box">
+                            <div class="calc-row">
+                                <span class="calc-label">单场总收入</span>
+                                <span class="calc-value income" id="totalIncome">+¥0.00</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">单场总支出</span>
+                                <span class="calc-value expense" id="totalExpense">-¥0.00</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">本场结余</span>
+                                <span class="calc-value balance" id="matchBalance">¥0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="form-section" style="margin-top: 20px;">
+                            <div class="section-title">场馆卡余额</div>
+                            <div class="form-group">
+                                <label for="cardBalance">当前场馆卡余额</label>
+                                <input type="number" id="cardBalance" value="0" min="0" step="0.01">
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary" id="saveBtn">
+                                <span>💾</span> 保存记录
+                            </button>
+                            <button class="btn btn-secondary" id="clearFormBtn">
+                                <span>🔄</span> 清空表单
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="initial-balance-section">
+                    <div class="section-title">初始余额设置</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="initialFundBalance">初始经费余额</label>
+                            <input type="number" id="initialFundBalance" value="0" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="initialCardBalance">初始场馆卡余额</label>
+                            <input type="number" id="initialCardBalance" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" id="saveInitialBtn" style="width: 100%;">
+                        <span>💾</span> 保存初始余额
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="records-header">
+                        <span class="records-title">📋 历史记录</span>
+                        <span class="records-count" id="recordsCount">0 场</span>
+                    </div>
+                    <div class="records-list" id="recordsList">
+                        <div class="empty-state">
+                            <div class="empty-icon">🏟️</div>
+                            <p>暂无比赛记录</p>
+                            <p style="font-size: 13px; margin-top: 8px;">添加第一场比赛开始统计</p>
+                        </div>
+                    </div>
+                    <div class="footer-actions" style="padding: 16px 24px;">
+                        <button class="btn btn-success" id="exportBtn">
+                            <span>📤</span> 导出数据
+                        </button>
+                        <button class="btn btn-danger" id="clearAllBtn">
+                            <span>🗑️</span> 清空所有
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const STORAGE_KEY = 'bombeFinanceRecords';
+        const INITIAL_BALANCE_KEY = 'bombeInitialBalance';
+
+        const elements = {
+            matchDate: document.getElementById('matchDate'),
+            opponent: document.getElementById('opponent'),
+            ourScore: document.getElementById('ourScore'),
+            theirScore: document.getElementById('theirScore'),
+            opponentScoreLabel: document.getElementById('opponentScoreLabel'),
+            memberFee: document.getElementById('memberFee'),
+            opponentFee: document.getElementById('opponentFee'),
+            waterFee: document.getElementById('waterFee'),
+            refereeFee: document.getElementById('refereeFee'),
+            venueFee: document.getElementById('venueFee'),
+            cardBalance: document.getElementById('cardBalance'),
+            totalIncome: document.getElementById('totalIncome'),
+            totalExpense: document.getElementById('totalExpense'),
+            matchBalance: document.getElementById('matchBalance'),
+            totalIncomeSum: document.getElementById('totalIncomeSum'),
+            totalExpenseSum: document.getElementById('totalExpenseSum'),
+            totalBalance: document.getElementById('totalBalance'),
+            totalMatches: document.getElementById('totalMatches'),
+            winDrawLose: document.getElementById('winDrawLose'),
+            winRateBar: document.getElementById('winRateBar'),
+            recordsList: document.getElementById('recordsList'),
+            recordsCount: document.getElementById('recordsCount'),
+            saveBtn: document.getElementById('saveBtn'),
+            clearFormBtn: document.getElementById('clearFormBtn'),
+            clearAllBtn: document.getElementById('clearAllBtn'),
+            exportBtn: document.getElementById('exportBtn'),
+            dateError: document.getElementById('dateError'),
+            opponentError: document.getElementById('opponentError'),
+            initialFundBalance: document.getElementById('initialFundBalance'),
+            initialCardBalance: document.getElementById('initialCardBalance'),
+            saveInitialBtn: document.getElementById('saveInitialBtn')
+        };
+
+        function loadRecords() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveRecords(records) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        }
+
+        function loadInitialBalance() {
+            const data = localStorage.getItem(INITIAL_BALANCE_KEY);
+            return data ? JSON.parse(data) : { fundBalance: 0, cardBalance: 0 };
+        }
+
+        function saveInitialBalanceData(fundBalance, cardBalance) {
+            localStorage.setItem(INITIAL_BALANCE_KEY, JSON.stringify({
+                fundBalance: fundBalance,
+                cardBalance: cardBalance
+            }));
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span> ${message}`;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function formatMoney(amount) {
+            return '¥' + parseFloat(amount).toFixed(2);
+        }
+
+        function calculateIncome() {
+            const memberFee = parseFloat(elements.memberFee.value) || 0;
+            const opponentFee = parseFloat(elements.opponentFee.value) || 0;
+            return memberFee + opponentFee;
+        }
+
+        function calculateExpense() {
+            const waterFee = parseFloat(elements.waterFee.value) || 0;
+            const refereeFee = parseFloat(elements.refereeFee.value) || 0;
+            const venueFee = parseFloat(elements.venueFee.value) || 0;
+            return waterFee + refereeFee + venueFee;
+        }
+
+        function updateMatchCalculation() {
+            const income = calculateIncome();
+            const expense = calculateExpense();
+            const balance = income - expense;
+
+            elements.totalIncome.textContent = '+' + formatMoney(income);
+            elements.totalExpense.textContent = '-' + formatMoney(expense);
+            elements.matchBalance.textContent = formatMoney(balance);
+            elements.matchBalance.className = 'calc-value balance ' + (balance >= 0 ? 'income' : 'expense');
+        }
+
+        function getMatchResult(ourScore, theirScore) {
+            if (ourScore > theirScore) return 'win';
+            if (ourScore < theirScore) return 'lose';
+            return 'draw';
+        }
+
+        function updateSummary() {
+            const records = loadRecords();
+            const initialBalance = loadInitialBalance();
+            
+            let totalIncome = 0;
+            let totalExpense = 0;
+            let wins = 0, draws = 0, loses = 0;
+            let latestCardBalance = initialBalance.cardBalance;
+
+            records.forEach(record => {
+                totalIncome += record.income;
+                totalExpense += record.expense;
+                if (record.result === 'win') wins++;
+                else if (record.result === 'draw') draws++;
+                else loses++;
+            });
+
+            if (records.length > 0) {
+                latestCardBalance = records[records.length - 1].cardBalance;
+            }
+
+            const totalBalance = initialBalance.fundBalance + totalIncome - totalExpense;
+            const winRate = records.length > 0 ? (wins / records.length * 100) : 0;
+
+            elements.totalIncomeSum.textContent = formatMoney(totalIncome);
+            elements.totalExpenseSum.textContent = formatMoney(totalExpense);
+            elements.totalBalance.textContent = formatMoney(totalBalance);
+            elements.totalBalance.className = 'stat-value ' + (totalBalance >= 0 ? 'positive' : 'negative');
+            elements.totalMatches.textContent = records.length;
+            elements.winDrawLose.textContent = `${wins} / ${draws} / ${loses}`;
+            elements.winRateBar.style.width = winRate + '%';
+            elements.recordsCount.textContent = records.length + ' 场';
+        }
+
+        function renderRecords() {
+            const records = loadRecords();
+            
+            if (records.length === 0) {
+                elements.recordsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🏟️</div>
+                        <p>暂无比赛记录</p>
+                        <p style="font-size: 13px; margin-top: 8px;">添加第一场比赛开始统计</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const resultText = { win: '胜', lose: '负', draw: '平' };
+            let html = '';
+            
+            records.slice().reverse().forEach((record, index) => {
+                const realIndex = records.length - 1 - index;
+                html += `
+                    <div class="record-item ${record.result}">
+                        <button class="record-delete" onclick="deleteRecord(${realIndex})" title="删除">×</button>
+                        <div class="record-header">
+                            <div class="record-info">
+                                <span class="record-date">${record.date}</span>
+                                <span class="record-opponent">VS ${record.opponent}</span>
+                            </div>
+                            <div class="record-result">
+                                <span class="record-score">${record.ourScore} : ${record.theirScore}</span>
+                                <span class="record-status ${record.result}">${resultText[record.result]}</span>
+                            </div>
+                        </div>
+                        <div class="record-details">
+                            <div class="record-detail">
+                                <div class="record-detail-label">收入</div>
+                                <div class="record-detail-value income">+${formatMoney(record.income)}</div>
+                            </div>
+                            <div class="record-detail">
+                                <div class="record-detail-label">支出</div>
+                                <div class="record-detail-value expense">-${formatMoney(record.expense)}</div>
+                            </div>
+                            <div class="record-detail">
+                                <div class="record-detail-label">结余</div>
+                                <div class="record-detail-value">${formatMoney(record.balance)}</div>
+                            </div>
+                            <div class="record-detail">
+                                <div class="record-detail-label">队员缴纳</div>
+                                <div class="record-detail-value">${formatMoney(record.memberFee)}</div>
+                            </div>
+                            <div class="record-detail">
+                                <div class="record-detail-label">对手支付</div>
+                                <div class="record-detail-value">${formatMoney(record.opponentFee)}</div>
+                            </div>
+                            <div class="record-detail">
+                                <div class="record-detail-label">场馆卡余额</div>
+                                <div class="record-detail-value">${formatMoney(record.cardBalance)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            elements.recordsList.innerHTML = html;
+        }
+
+        function validateInput() {
+            let isValid = true;
+
+            if (!elements.matchDate.value) {
+                elements.dateError.classList.add('show');
+                elements.matchDate.classList.add('error');
+                isValid = false;
+            } else {
+                elements.dateError.classList.remove('show');
+                elements.matchDate.classList.remove('error');
+            }
+
+            if (!elements.opponent.value.trim()) {
+                elements.opponentError.classList.add('show');
+                elements.opponent.classList.add('error');
+                isValid = false;
+            } else {
+                elements.opponentError.classList.remove('show');
+                elements.opponent.classList.remove('error');
+            }
+
+            return isValid;
+        }
+
+        function saveRecord() {
+            if (!validateInput()) {
+                showToast('请填写必填项', 'error');
+                return;
+            }
+
+            const ourScore = parseInt(elements.ourScore.value) || 0;
+            const theirScore = parseInt(elements.theirScore.value) || 0;
+
+            const record = {
+                date: elements.matchDate.value,
+                opponent: elements.opponent.value.trim(),
+                ourScore: ourScore,
+                theirScore: theirScore,
+                result: getMatchResult(ourScore, theirScore),
+                memberFee: parseFloat(elements.memberFee.value) || 0,
+                opponentFee: parseFloat(elements.opponentFee.value) || 0,
+                waterFee: parseFloat(elements.waterFee.value) || 0,
+                refereeFee: parseFloat(elements.refereeFee.value) || 0,
+                venueFee: parseFloat(elements.venueFee.value) || 0,
+                cardBalance: parseFloat(elements.cardBalance.value) || 0,
+                income: calculateIncome(),
+                expense: calculateExpense(),
+                balance: calculateIncome() - calculateExpense()
+            };
+
+            const records = loadRecords();
+            records.push(record);
+            saveRecords(records);
+
+            renderRecords();
+            updateSummary();
+            clearForm();
+            showToast('记录保存成功！', 'success');
+        }
+
+        function deleteRecord(index) {
+            if (!confirm('确定要删除这条记录吗？')) {
+                return;
+            }
+
+            const records = loadRecords();
+            records.splice(index, 1);
+            saveRecords(records);
+
+            renderRecords();
+            updateSummary();
+            showToast('记录已删除', 'info');
+        }
+
+        function clearForm() {
+            const today = new Date().toISOString().split('T')[0];
+            elements.matchDate.value = today;
+            elements.opponent.value = '';
+            elements.ourScore.value = '0';
+            elements.theirScore.value = '0';
+            elements.memberFee.value = '0';
+            elements.opponentFee.value = '0';
+            elements.waterFee.value = '0';
+            elements.refereeFee.value = '0';
+            elements.venueFee.value = '0';
+            elements.cardBalance.value = '0';
+            
+            elements.dateError.classList.remove('show');
+            elements.opponentError.classList.remove('show');
+            elements.matchDate.classList.remove('error');
+            elements.opponent.classList.remove('error');
+
+            updateMatchCalculation();
+        }
+
+        function clearAllRecords() {
+            if (!confirm('确定要清空所有记录吗？此操作不可恢复！')) {
+                return;
+            }
+
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(INITIAL_BALANCE_KEY);
+            elements.initialFundBalance.value = '0';
+            elements.initialCardBalance.value = '0';
+            renderRecords();
+            updateSummary();
+            showToast('所有记录已清空', 'info');
+        }
+
+        function saveInitialBalanceHandler() {
+            const fundBalance = parseFloat(elements.initialFundBalance.value) || 0;
+            const cardBalance = parseFloat(elements.initialCardBalance.value) || 0;
+            saveInitialBalanceData(fundBalance, cardBalance);
+            updateSummary();
+            showToast('初始余额已保存！', 'success');
+        }
+
+        function exportData() {
+            const records = loadRecords();
+            const initialBalance = loadInitialBalance();
+            
+            if (records.length === 0) {
+                showToast('暂无数据可导出', 'error');
+                return;
+            }
+
+            let csv = '\ufeff日期,对手,BOMBE得分,对手得分,结果,队员缴纳,对手支付,饮用水,裁判费,场地费,收入,支出,结余,场馆卡余额\n';
+            
+            const resultText = { win: '胜', lose: '负', draw: '平' };
+            
+            records.forEach(record => {
+                csv += `${record.date},${record.opponent},${record.ourScore},${record.theirScore},${resultText[record.result]},`;
+                csv += `${record.memberFee},${record.opponentFee},${record.waterFee},${record.refereeFee},${record.venueFee},`;
+                csv += `${record.income},${record.expense},${record.balance},${record.cardBalance}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `BOMBE球队经费记录_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            showToast('数据导出成功！', 'success');
+        }
+
+        function bindEvents() {
+            elements.memberFee.addEventListener('input', updateMatchCalculation);
+            elements.opponentFee.addEventListener('input', updateMatchCalculation);
+            elements.waterFee.addEventListener('input', updateMatchCalculation);
+            elements.refereeFee.addEventListener('input', updateMatchCalculation);
+            elements.venueFee.addEventListener('input', updateMatchCalculation);
+
+            elements.saveBtn.addEventListener('click', saveRecord);
+            elements.clearFormBtn.addEventListener('click', () => {
+                clearForm();
+                showToast('表单已清空', 'info');
+            });
+            elements.clearAllBtn.addEventListener('click', clearAllRecords);
+            elements.exportBtn.addEventListener('click', exportData);
+            elements.saveInitialBtn.addEventListener('click', saveInitialBalanceHandler);
+
+            elements.matchDate.addEventListener('change', function() {
+                if (this.value) {
+                    elements.dateError.classList.remove('show');
+                    this.classList.remove('error');
+                }
+            });
+
+            elements.opponent.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    elements.opponentError.classList.remove('show');
+                    this.classList.remove('error');
+                    elements.opponentScoreLabel.textContent = this.value.trim();
+                } else {
+                    elements.opponentScoreLabel.textContent = '对手';
+                }
+            });
+        }
+
+        function init() {
+            const today = new Date().toISOString().split('T')[0];
+            elements.matchDate.value = today;
+
+            const initialBalance = loadInitialBalance();
+            elements.initialFundBalance.value = initialBalance.fundBalance;
+            elements.initialCardBalance.value = initialBalance.cardBalance;
+
+            bindEvents();
+            updateMatchCalculation();
+            renderRecords();
+            updateSummary();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
